@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amigo Oculto</title>
+<style>
+:root{--bg:#fff6ef;--card:#ffffff;--txt:#2a1d1a;--muted:#8a7470;--acc:#e0453a;--acc2:#f5a524;--ok:#2e9e5b;--line:#f0dcd4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1412;--card:#271d1a;--txt:#fbeee9;--muted:#a9948e;--acc:#ff6b5e;--acc2:#ffc14d;--ok:#4cd28a;--line:#3d2d28}}
+:root[data-theme="dark"]{--bg:#1b1412;--card:#271d1a;--txt:#fbeee9;--muted:#a9948e;--acc:#ff6b5e;--acc2:#ffc14d;--ok:#4cd28a;--line:#3d2d28}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:16px;display:flex;justify-content:center}
+.wrap{width:100%;max-width:560px}
+h1{text-align:center;font-size:clamp(1.7rem,7vw,2.5rem);margin:12px 0 4px}
+.sub{text-align:center;color:var(--muted);margin:4px 0 16px;font-size:.95rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:14px;box-shadow:0 6px 20px rgba(0,0,0,.06)}
+.barra{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.barra div{height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .6s}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px}
+.nome{position:relative;font:inherit;font-weight:600;color:var(--txt);background:var(--card);border:2px solid var(--line);border-radius:14px;padding:16px 8px;min-height:56px;cursor:pointer;transition:transform .15s,border-color .15s}
+.nome:hover,.nome:focus-visible{transform:translateY(-2px);border-color:var(--acc);outline:none}
+.nome.feito::after{content:"✓";position:absolute;top:4px;right:8px;color:var(--ok);font-weight:800}
+.resultado{font-size:clamp(2rem,11vw,3.4rem);font-weight:800;color:var(--acc);text-align:center;margin:18px 0 8px;min-height:1.3em;word-break:break-word}
+.pop{animation:pop .5s cubic-bezier(.2,1.5,.4,1)}
+@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+.btn{display:block;margin:12px auto;font:inherit;font-weight:700;font-size:1.05rem;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));border:0;border-radius:999px;padding:14px 28px;cursor:pointer}
+.btn:disabled{opacity:.6;cursor:wait}
+.link{display:block;text-align:center;color:var(--muted);font-size:.9rem;margin-top:8px}
+.item{display:flex;gap:10px;align-items:center;border-top:1px solid var(--line);padding:8px 0}
+.item img{width:56px;height:56px;object-fit:cover;border-radius:10px;flex:none}
+.sec{font-weight:700;margin:8px 0 4px}
+.x{background:none;border:0;color:var(--muted);font-size:1.1rem;cursor:pointer}
+.form input{width:100%;font:inherit;padding:10px;margin:4px 0;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--txt)}
+.form summary{cursor:pointer;color:var(--acc);font-weight:600;margin-top:12px}
+.hide{display:none!important}
+.erro{color:var(--acc)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🎁 Amigo Oculto</h1>
+  <p class="sub" id="sub">Carregando…</p>
+  <div class="card">
+    <div class="barra"><div id="barra"></div></div>
+    <p class="sub" id="prog" style="margin:10px 0 0"></p>
+  </div>
+  <div class="card" id="telaNomes">
+    <p class="sub" style="margin-top:0">Toque no seu nome para entrar</p>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="card hide" id="telaSorteio">
+    <p id="ola" style="text-align:center;font-size:1.15rem;font-weight:600;margin:0"></p>
+    <div class="resultado" id="resultado">🎁</div>
+    <p class="sub" id="msg"></p>
+    <button class="btn" id="btnSortear">🎲 Sortear meu nome</button>
+    <div id="amigoLista" class="hide"></div>
+    <details class="form" style="margin-top:12px">
+      <summary>➕ Adicionar sugestão na minha lista</summary>
+      <input id="fTitulo" maxlength="80" placeholder="O que é (ex.: fone bluetooth)">
+      <input id="fPreco" type="number" min="1" step="0.01" placeholder="Preço (sugestão até R$ 150)">
+      <input id="fLink" type="url" placeholder="Link da loja (opcional)">
+      <input id="fFoto" type="url" placeholder="Link de uma foto (opcional)">
+      <button class="btn" id="btnAdd" style="margin:8px auto 0">Adicionar</button>
+    </details>
+    <a href="#" class="link" id="voltar">← trocar de nome</a>
+  </div>
+  <div class="card" id="telaListas">
+    <p class="sec">🎁 Sugestões de presente</p>
+    <p class="sub" id="regra" style="margin:0 0 8px"></p>
+    <div id="listas"></div>
+  </div>
+  <div class="card hide" id="telaFim">
+    <p style="text-align:center;margin:8px 0;font-size:1.1rem">⏰ O sorteio foi encerrado.</p>
+  </div>
+</div>
+<script>
+// URL do App da Web do Apps Script (backend). Troque aqui se gerar uma nova implantação.
+const API = 'https://script.google.com/macros/s/AKfycbzua7dmhGhy3NEKBfRxBn2CFALXnmBthwLDxbF-5Zj1A6huDUMC1kW7nkNJ0F_qaqaF8w/exec';
+
+// Chamada JSONP: não depende de login nem de iframe do Google
+let cbN = 0;
+function api(params) {
+  return new Promise((ok, err) => {
+    const name = 'amigo_cb_' + (++cbN) + '_' + Math.random().toString(36).slice(2);
+    const s = document.createElement('script');
+    const timer = setTimeout(() => { limpar(); err(new Error('o servidor demorou para responder')); }, 20000);
+    function limpar() { clearTimeout(timer); delete window[name]; s.remove(); }
+    window[name] = d => { limpar(); if (d && d.erro) err(new Error(d.erro)); else ok(d); };
+    s.onerror = () => { limpar(); err(new Error('não foi possível conectar ao servidor')); };
+    s.src = API + '?' + new URLSearchParams({ ...params, callback: name }).toString();
+    document.body.appendChild(s);
+  });
+}
+
+let estado = null, meuNome = null, girando = null, resposta = null, animFim = false;
+const $ = id => document.getElementById(id);
+const mostrar = (id, on) => $(id).classList.toggle('hide', !on);
+function falha(e) { $('sub').innerHTML = '<span class="erro">Erro: ' + ((e && e.message) || e) + '</span>'; }
+
+function carregar() {
+  api({ action: 'estado' }).then(render).catch(falha);
+}
+
+function render(e) {
+  estado = e;
+  $('regra').textContent = 'Regra: sugestão de até R$ ' + e.limite.toFixed(2).replace('.', ',') + ' por presente. Links podem mostrar preço acima, sinalizado na lista.';
+  renderListas();
+  const feitos = e.sorteados.length, total = e.nomes.length;
+  $('barra').style.width = (feitos / total * 100) + '%';
+  $('prog').textContent = feitos + ' de ' + total + ' já sortearam';
+  if (e.expirado) {
+    $('sub').textContent = 'Encerrado';
+    mostrar('telaNomes', false); mostrar('telaSorteio', false); mostrar('telaFim', true);
+    return;
+  }
+  $('sub').textContent = 'Fica no ar por mais ~' + Math.floor(e.restanteMin / 1440) + 'd ' + Math.floor(e.restanteMin % 1440 / 60) + 'h';
+  const g = $('grid');
+  if (!g.children.length) {
+    e.nomes.forEach(n => {
+      const b = document.createElement('button');
+      b.className = 'nome'; b.textContent = n; b.dataset.n = n;
+      b.onclick = () => escolher(n);
+      g.appendChild(b);
+    });
+  }
+  g.querySelectorAll('.nome').forEach(b => b.classList.toggle('feito', e.sorteados.includes(b.dataset.n)));
+}
+
+function escolher(n) {
+  meuNome = n;
+  mostrar('telaNomes', false); mostrar('telaSorteio', true);
+  const jaFez = estado.sorteados.includes(n);
+  $('ola').textContent = 'Olá, ' + n + '!';
+  $('resultado').textContent = '🎁';
+  $('resultado').classList.remove('pop');
+  $('msg').textContent = jaFez ? 'Você já sorteou.' : 'Clique abaixo e guarde segredo 🤫';
+  const btn = $('btnSortear');
+  btn.textContent = jaFez ? 'Ver meu amigo' : '🎲 Sortear meu nome';
+  btn.disabled = false;
+  btn.classList.remove('hide');
+  mostrar('amigoLista', false);
+}
+
+function sortearMeu() {
+  const jaFez = estado.sorteados.includes(meuNome);
+  const btn = $('btnSortear');
+  btn.disabled = true;
+  $('msg').textContent = '';
+  resposta = null;
+  animFim = jaFez;
+  if (!jaFez) {
+    const outros = estado.nomes.filter(n => n !== meuNome);
+    let i = 0;
+    girando = setInterval(() => { $('resultado').textContent = outros[i++ % outros.length]; }, 80);
+    setTimeout(() => { animFim = true; tentarRevelar(); }, 2000);
+  }
+  api({ action: 'sortear', nome: meuNome })
+    .then(r => { resposta = r; tentarRevelar(); })
+    .catch(e => {
+      clearInterval(girando); girando = null;
+      $('resultado').textContent = '🎁';
+      btn.disabled = false;
+      $('msg').textContent = 'Erro: ' + ((e && e.message) || e);
+    });
+}
+
+function tentarRevelar() {
+  if (!resposta || !animFim) return;
+  clearInterval(girando); girando = null;
+  if (resposta.status === 'expirado') { carregar(); return; }
+  const r = $('resultado');
+  r.textContent = resposta.alvo;
+  r.classList.remove('pop'); void r.offsetWidth; r.classList.add('pop');
+  $('msg').textContent = 'Guarde segredo 🤫';
+  $('btnSortear').classList.add('hide');
+  const am = $('amigoLista');
+  am.textContent = '';
+  am.appendChild(blocoLista(resposta.alvo, false));
+  mostrar('amigoLista', true);
+  carregar();
+}
+
+function blocoLista(n, editavel) {
+  const wrap = document.createElement('div');
+  wrap.style.marginBottom = '10px';
+  const h = document.createElement('p'); h.className = 'sec'; h.textContent = n;
+  wrap.appendChild(h);
+  const itens = (estado.listas || {})[n] || [];
+  if (!itens.length) {
+    const p = document.createElement('p'); p.className = 'sub'; p.style.margin = '0'; p.textContent = 'Ainda sem sugestões.';
+    wrap.appendChild(p);
+  }
+  itens.forEach((it, idx) => {
+    const row = document.createElement('div'); row.className = 'item';
+    if (it.foto) {
+      const im = document.createElement('img');
+      im.src = it.foto; im.alt = ''; im.referrerPolicy = 'no-referrer';
+      im.onerror = () => im.remove();
+      row.appendChild(im);
+    }
+    const info = document.createElement('div'); info.style.flex = '1';
+    const t = document.createElement('div'); t.style.fontWeight = '600';
+    t.textContent = it.titulo + ' · R$ ' + Number(it.preco).toFixed(2).replace('.', ',');
+    info.appendChild(t);
+    if (it.preco > estado.limite) {
+      const warn = document.createElement('div'); warn.className = 'sub'; warn.style.margin = '0';
+      warn.textContent = '⚠️ acima de R$ ' + estado.limite.toFixed(2).replace('.', ',');
+      info.appendChild(warn);
+    }
+    if (it.link) {
+      const a = document.createElement('a');
+      a.href = it.link; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      a.textContent = 'ver na loja'; a.style.color = 'var(--acc)';
+      info.appendChild(a);
+    }
+    row.appendChild(info);
+    if (editavel) {
+      const x = document.createElement('button');
+      x.className = 'x'; x.textContent = '✕'; x.title = 'remover';
+      x.onclick = () => removerItem(n, idx);
+      row.appendChild(x);
+    }
+    wrap.appendChild(row);
+  });
+  return wrap;
+}
+
+function renderListas() {
+  const box = $('listas');
+  box.textContent = '';
+  estado.nomes.forEach(n => {
+    if (((estado.listas || {})[n] || []).length) box.appendChild(blocoLista(n, n === meuNome));
+  });
+  if (!box.children.length) box.textContent = 'Nenhuma sugestão ainda.';
+}
+
+function removerItem(n, idx) {
+  api({ action: 'remover', nome: n, idx: idx }).then(carregar).catch(falha);
+}
+
+$('btnAdd').onclick = () => {
+  if (!meuNome) return;
+  const btn = $('btnAdd');
+  btn.disabled = true;
+  api({
+    action: 'item', nome: meuNome,
+    titulo: $('fTitulo').value.trim(), preco: $('fPreco').value,
+    link: $('fLink').value.trim(), foto: $('fFoto').value.trim()
+  }).then(r => {
+    btn.disabled = false;
+    if (r.status === 'expirado') { carregar(); return; }
+    ['fTitulo', 'fPreco', 'fLink', 'fFoto'].forEach(i => $(i).value = '');
+    $('msg').textContent = 'Sugestão adicionada ✅';
+    carregar();
+  }).catch(e => { btn.disabled = false; $('msg').textContent = 'Erro: ' + ((e && e.message) || e); });
+};
+
+$('btnSortear').onclick = sortearMeu;
+$('voltar').onclick = e => {
+  e.preventDefault();
+  clearInterval(girando); girando = null;
+  mostrar('telaSorteio', false); mostrar('telaNomes', true);
+  carregar();
+};
+
+carregar();
+setInterval(carregar, 20000);
+</script>
+</body>
+</html>
